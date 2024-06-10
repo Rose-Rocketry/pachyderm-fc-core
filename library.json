@@ -1,0 +1,24 @@
+{
+    "name": "pachyderm-fc-core",
+    "version": "1.0.0",
+    "description": "Core logic for the Pachyderm Flight Computer developed by Rose Rocketry.",
+    "keywords": "rocketry",
+    "repository":
+    {
+      "type": "git",
+      "url": "https://github.com/Rose-Rocketry/pachyderm-fc-core"
+    },
+    "authors":
+    [
+      {
+        "name": "Ben Graham",
+        "email": "grahambd@rose-hulman.edu",
+        "url": "lithosphererocketry.github.io"
+      }
+    ],
+    "license": "MIT",
+    "dependencies": {
+    },
+    "frameworks": "*",
+    "platforms": "*"
+  }

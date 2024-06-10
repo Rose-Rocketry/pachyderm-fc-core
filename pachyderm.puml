@@ -1,0 +1,86 @@
+@startuml
+
+package core {
+    package pachy {
+        class FCCore {
+            - telem: DataSink*
+            - flash: FlashDevice*
+            - log: FlashSink
+            + FCCore(telem_sink: DataSink*, flash_dev: FlashDevice*)
+            + begin(): void
+            + step(): void
+        }
+        FCCore --> DataSink
+        FCCore --> FlashDevice
+        FCCore --> FlashSink
+
+        interface DataSink {
+            + buf_avail(): size_t
+            + write(data: const char*, size: size_t): void
+        }
+
+        interface FlashDevice {
+            + {static} ERASE_SIZE: constexpr size_t 
+            + {static} FLASH_SIZE: constexpr size_t
+            + read(addr: size_t, buffer: char*, size: size_t): bool
+            + write(addr: size_t, data: const char*, size: size_t): bool
+            + erase(addr: size_t): bool
+        }
+
+        class FlashSink {
+            - flash: FlashDevice*
+            + FlashSink(flash_dev: FlashDevice*)
+            + init(): size_t
+            + buf_avail(): size_t
+            + write(data: const char*, size: size_t): void
+        }
+        FlashSink --> FlashDevice
+        FlashSink .r.|> DataSink
+    }
+}
+
+package sil {
+    class main {
+        - core: FCCore
+        - telem_sink: StreamSink
+        - flash_dev: FlashImage
+    }
+    main --> core.pachy.FCCore
+    main --> StreamSink
+    main --> FlashImage
+
+    class StreamSink {
+        + buf_avail(): size_t
+        + write(data: const char*, size: size_t): void
+    }
+    StreamSink .u.|> core.pachy.DataSink
+
+    class FlashImage {
+        + read(addr: size_t, buffer, char*, size: size_t): bool
+        + write(addr: size_t, data: const char*, size: size_t): bool
+        + erase_64k(addr: size_t): bool
+    }
+    FlashImage .u.|> core.pachy.FlashDevice
+}
+
+package firmware {
+    class main {
+        - core: FCCore
+        - telem_sink: RFSink
+        - flash_dev: WinbondFlash
+    }
+    main --> core.pachy.FCCore
+    main --> RFSink
+    main --> WinbondFlash
+
+    class RFSink {
+        + RFSink(...)
+    }
+    RFSink .u.|> core.pachy.DataSink
+
+    class WinbondFlash {
+        + WinbondFlash(...)
+    }
+    WinbondFlash .u.|> core.pachy.FlashDevice
+}
+@enduml
