@@ -5,14 +5,16 @@ package core {
         class FCCore {
             - telem: DataSink*
             - flash: FlashDevice*
+            - config: ConfigSource*
             - log: FlashSink
-            + FCCore(telem_sink: DataSink*, flash_dev: FlashDevice*)
+            + FCCore(telem_sink: DataSink*, flash_dev: FlashDevice*, config: ConfigSource*)
             + begin(): void
             + step(): void
         }
         FCCore --> DataSink
         FCCore --> FlashDevice
         FCCore --> FlashSink
+        FCCore --> ConfigSource
 
         interface DataSink {
             + buf_avail(): size_t
@@ -25,6 +27,11 @@ package core {
             + read(addr: size_t, buffer: char*, size: size_t): bool
             + write(addr: size_t, data: const char*, size: size_t): bool
             + erase(addr: size_t): bool
+        }
+
+        interface ConfigSource {
+            + open(filename: const char*): bool
+            + read(section: const char*, header: const char*): bool
         }
 
         class FlashSink {
@@ -61,6 +68,10 @@ package sil {
         + erase_64k(addr: size_t): bool
     }
     FlashImage .u.|> core.pachy.FlashDevice
+
+    class FileConfig {
+
+    }
 }
 
 package firmware {
