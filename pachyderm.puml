@@ -6,8 +6,9 @@ package core {
             - telem: DataSink*
             - flash: FlashDevice*
             - config: ConfigSource*
+            - file: StorageSink*
             - log: FlashSink
-            + FCCore(telem_sink: DataSink*, flash_dev: FlashDevice*, config: ConfigSource*)
+            + FCCore(telem_sink: DataSink*, flash_dev: FlashDevice*, config: ConfigSource*, fs: StorageSink*)
             + begin(): void
             + step(): void
         }
@@ -34,6 +35,12 @@ package core {
             + read(section: const char*, header: const char*): bool
         }
 
+        interface StorageSink {
+            + open(filename: const char*): bool
+            + close(): bool
+        }
+        StorageSink ..|> DataSink
+
         class FlashSink {
             - flash: FlashDevice*
             + FlashSink(flash_dev: FlashDevice*)
@@ -46,16 +53,12 @@ package core {
     }
 }
 
-package sil {
-    class main {
-        - core: FCCore
-        - telem_sink: StreamSink
-        - flash_dev: FlashImage
-    }
-    main --> core.pachy.FCCore
-    main --> StreamSink
-    main --> FlashImage
+package inipp {
+    class Ini {
+    } 
+}
 
+package sil {
     class StreamSink {
         + buf_avail(): size_t
         + write(data: const char*, size: size_t): void
@@ -70,8 +73,26 @@ package sil {
     FlashImage .u.|> core.pachy.FlashDevice
 
     class FileConfig {
-
+        - source: Ini
+        - dir: string
+        + FileConfig(rootdir: string)
+        + open(filename: const char*): bool
+        + read(section: const char*, header: const char*): bool
+        
     }
+    FileConfig .u.|> core.pachy.ConfigSource
+    FileConfig --> inipp.Ini
+
+    class FileStorage {
+        - dir: string
+        - file: ofstream
+        + FileStorage(rootdir: string)
+        + open(path: const char*): bool
+        + close(): bool
+        + buf_avail(): size_t
+        + write(data: const char*, size: size_t): void
+    }
+    FileStorage .u.|> core.pachy.StorageSink
 }
 
 package firmware {
