@@ -2,13 +2,29 @@
 
 package core {
     package pachy {
+        struct DataPacket {
+            + time: uint32_t
+            + accel: VectorF
+            + altitude: float
+            + higAccel: VectorF
+            + battVoltage: uint8_t
+            + temp: uint8_t
+            + pyroCont: uint8_t
+            + gyro: VectorF
+            + state: FlightState
+            + vel: VectorF
+            + orientation: QuatF
+        }
+        
         class FCCore {
+            - debug: DataSink*
             - telem: DataSink*
             - flash: FlashDevice*
             - config: ConfigSource*
             - file: StorageSink*
+            - flash_queue: static_queue<DataPacket>
             - log: FlashSink
-            + FCCore(telem_sink: DataSink*, flash_dev: FlashDevice*, config: ConfigSource*, fs: StorageSink*)
+            + FCCore(debug_sink: DataSink*, telem_sink: DataSink*, flash_dev: FlashDevice*, config: ConfigSource*, fs: StorageSink*)
             + begin(): void
             + step(): void
         }
@@ -16,10 +32,14 @@ package core {
         FCCore --> FlashDevice
         FCCore --> FlashSink
         FCCore --> ConfigSource
+        FCCore --> static_queue
+        FCCore -->"*" DataPacket
 
         interface DataSink {
             + buf_avail(): size_t
             + write(data: const char*, size: size_t): void
+            + write_obj<TYPE>(obj: TYPE): void
+            + printf(format: const char*, ...): void
         }
 
         interface FlashDevice {
@@ -50,6 +70,19 @@ package core {
         }
         FlashSink --> FlashDevice
         FlashSink .r.|> DataSink
+
+        class static_queue<T, SIZE> {
+            - queue: T[SIZE]
+            - read_ind: size_t
+            - write_ind: size_t
+            - push_unsafe(item: const T&): void
+            - pop_unsafe(dest: T*): void
+            + size(): size_t
+            + free(): size_t
+            + push(item: const T&): bool
+            + push_anyway(item: const T&): bool
+            + pop(dest: T*): bool
+        }
     }
 }
 

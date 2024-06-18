@@ -6,11 +6,14 @@
 #include "FlashSink.h"
 #include "ConfigSource.h"
 #include "StorageSink.h"
+#include "DataPacket.h"
+#include "static_queue.h"
 
 namespace pachy {
     class FCCore {
         private:
             // Interface devices
+            DataSink* debug;
             DataSink* telem;
             FlashDevice* flash;
             ConfigSource* config;
@@ -18,8 +21,10 @@ namespace pachy {
             FlashSink log;
 
             size_t flash_start;
+            static_queue<DataPacket, 16384/packet_size> flash_queue;
         public:
-            FCCore(DataSink* telem_sink,
+            FCCore(DataSink* debug_sink,
+                   DataSink* telem_sink,
                    FlashDevice* flash_dev,
                    ConfigSource* conf,
                    StorageSink* fs);

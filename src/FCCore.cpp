@@ -1,12 +1,15 @@
 #include "FCCore.h"
+
 #include <cstdio>
 #include <cstring>
 
 namespace pachy {
-    FCCore::FCCore(DataSink* telem_sink,
+    FCCore::FCCore(DataSink* debug_sink,
+                   DataSink* telem_sink,
                    FlashDevice* flash_dev,
                    ConfigSource* conf,
                    StorageSink* fs):
+        debug(debug_sink),
         telem(telem_sink),
         flash(flash_dev),
         config(conf),
@@ -14,19 +17,23 @@ namespace pachy {
         log(flash) {}
 
     void FCCore::begin() {
+        debug->printf("PachydermFC starting\n");
         flash_start = log.init();
-
-        char buf[256];
-        std::snprintf(buf, 256, "%lx", flash_start);
+        
+        debug->printf("Flash starts at %lx\n", flash_start);
         file->open("flash_addr.txt");
-        file->write(buf, strlen(buf));
+        file->printf("%lx", flash_start);
         file->close();
-
-        char fissure[] = "I realized, the moment I fell into the fissure, that the book would not be destroyed as I had planned. It continued falling into that starry expanse of which I had only a fleeting glimpse. I have tried to speculate where it might have landed, but I must admit, however— such conjecture is futile. Still, the question of whose hands might someday hold my Myst book are unsettling to me. I know that my apprehensions might never be allayed, and so I close, realizing that perhaps, the ending has not yet been written.";
-        log.write(fissure, strlen(fissure));
     }
 
     void FCCore::step() {
-
+        // Any scheduled task we might need to do
+        if(false) {
+            // ...
+        } else if(flash_queue.size() > 0 && log.buf_avail() > sizeof(DataPacket)) {
+            DataPacket p;
+            flash_queue.pop(&p);
+            log.write_obj(p);
+        }
     }
 }
